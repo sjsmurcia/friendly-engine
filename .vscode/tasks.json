@@ -1,0 +1,26 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "Compilar C++",
+        "type": "shell",
+        "command": "g++",
+        "args": [
+        "-finput-charset=UTF-8",
+        "-g",
+        "${file}",
+        "-o",
+        "${fileDirname}\\${fileBasenameNoExtension}.exe"
+      ],
+        "group": {
+          "kind": "build",
+          "isDefault": true
+        },
+        "problemMatcher": [
+          "$gcc"
+        ],
+        "detail": "Tarea generada automáticamente por VS Code."
+      }
+    ]
+  }
+  
