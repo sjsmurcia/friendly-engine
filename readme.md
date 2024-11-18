@@ -62,3 +62,7 @@
     - Imprime todas las llaves almacenadas.
      -Menú Interactivo:
         Permite al usuario insertar, buscar y mostrar las llaves alfanuméricas en la tabla.
+6. Ahora incluye:
+    Algoritmo A: Dispersión para llaves numéricas.
+    Algoritmo B: Dispersión para llaves alfanuméricas (desarrollado por usted).
+    Algoritmo C: Dispersión utilizando std::hash

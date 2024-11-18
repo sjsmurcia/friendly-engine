@@ -1,21 +1,22 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include <functional> // Para std::hash
+#include <functional> 
+#include <list> 
 using namespace std;
 
-// Capacidades de las tablas hash
+
 const int TAMANO_TABLA_NUMERICA = 750;
 const int TAMANO_TABLA_ALFANUMERICA = 1100;
 const int TAMANO_TABLA_HASH_PREDEFINIDA = 100;
 
-// Estructura para almacenar la posición y la llave
+
 struct Entrada {
-    string llave;
-    bool ocupado;
+    vector<string> llaves;  // Ahora puede almacenar múltiples llaves por posición (para compartimientos)
+    bool ocupado;           // Indicador de si la posición está ocupada
 };
 
-// Algoritmo A: Dispersión para llaves numéricas
+// Algoritmo A: Dispersión para llaves numéricas (sin librerías)
 int hashNumerico(int llave) {
     return (llave * 3 + 7) % TAMANO_TABLA_NUMERICA;
 }
@@ -36,6 +37,11 @@ int hashPredefinido(const string& llave) {
     return hashValue % TAMANO_TABLA_HASH_PREDEFINIDA;
 }
 
+// Función de hash secundaria para manejar colisiones mediante doble dispersión
+int hashSecundario(int llave, int i) {
+    return (hashPredefinido(to_string(llave)) + i * i) % TAMANO_TABLA_HASH_PREDEFINIDA;
+}
+
 // Clase para manejar las tres tablas hash
 class TablaHash {
 private:
@@ -51,38 +57,56 @@ public:
         tablaPredefinida.resize(TAMANO_TABLA_HASH_PREDEFINIDA, {"", false});
     }
 
-    // Insertar en tabla numérica
+    // Insertar en tabla numérica (método de saturación progresiva)
     bool insertarNumerico(int llave) {
         int posicion = hashNumerico(llave);
-        if (tablaNumerica[posicion].ocupado) {
+
+        // Búsqueda lineal para encontrar una posición libre
+        while (tablaNumerica[posicion].ocupado) {
             cout << "Colisión detectada en la posición (numérica): " << posicion << endl;
-            return false;
+            posicion = (posicion + 1) % TAMANO_TABLA_NUMERICA; // Avanzamos a la siguiente posición
         }
-        tablaNumerica[posicion] = {to_string(llave), true};
+
+        // Insertamos la llave en la posición encontrada
+        tablaNumerica[posicion].llaves.push_back(to_string(llave));
+        tablaNumerica[posicion].ocupado = true;
         cout << "Llave numérica " << llave << " insertada en la posición: " << posicion << endl;
         return true;
     }
 
-    // Insertar en tabla alfanumérica (propia)
+    // Insertar en tabla alfanumérica (método de compartimientos)
     bool insertarAlfanumerico(const string& llave) {
         int posicion = hashAlfanumerico(llave);
+
+        // Si la posición está ocupada, agregamos la nueva llave al compartimiento
         if (tablaAlfanumerica[posicion].ocupado) {
             cout << "Colisión detectada en la posición (alfanumérica): " << posicion << endl;
-            return false;
+            tablaAlfanumerica[posicion].llaves.push_back(llave); // Agregar la nueva llave al compartimiento
+        } else {
+            // Si no hay colisión, insertamos la llave directamente
+            tablaAlfanumerica[posicion].llaves.push_back(llave);
+            tablaAlfanumerica[posicion].ocupado = true; // Marcamos la posición como ocupada
         }
-        tablaAlfanumerica[posicion] = {llave, true};
+
         cout << "Llave alfanumérica \"" << llave << "\" insertada en la posición: " << posicion << endl;
         return true;
     }
 
-    // Insertar en tabla alfanumérica (predefinida)
+    // Insertar en tabla predefinida (método de doble dispersión)
     bool insertarPredefinido(const string& llave) {
         int posicion = hashPredefinido(llave);
-        if (tablaPredefinida[posicion].ocupado) {
+        int intentos = 0;
+
+        // Aplicamos doble dispersión si hay colisión
+        while (tablaPredefinida[posicion].ocupado) {
             cout << "Colisión detectada en la posición (predefinida): " << posicion << endl;
-            return false;
+            intentos++;  // Incrementamos el contador de intentos
+            posicion = hashSecundario(hashPredefinido(llave), intentos); // Usamos la segunda función de hash
         }
-        tablaPredefinida[posicion] = {llave, true};
+
+        // Insertamos la llave en la posición disponible
+        tablaPredefinida[posicion].llaves.push_back(llave);
+        tablaPredefinida[posicion].ocupado = true;
         cout << "Llave \"" << llave << "\" insertada en la posición (predefinida): " << posicion << endl;
         return true;
     }
@@ -90,19 +114,34 @@ public:
     // Buscar en tabla numérica
     bool buscarNumerico(int llave) {
         int posicion = hashNumerico(llave);
-        return tablaNumerica[posicion].ocupado && tablaNumerica[posicion].llave == to_string(llave);
+        for (const auto& l : tablaNumerica[posicion].llaves) {
+            if (l == to_string(llave)) {
+                return true;
+            }
+        }
+        return false;
     }
 
-    // Buscar en tabla alfanumérica (propia)
+    // Buscar en tabla alfanumérica
     bool buscarAlfanumerico(const string& llave) {
         int posicion = hashAlfanumerico(llave);
-        return tablaAlfanumerica[posicion].ocupado && tablaAlfanumerica[posicion].llave == llave;
+        for (const auto& l : tablaAlfanumerica[posicion].llaves) {
+            if (l == llave) {
+                return true;
+            }
+        }
+        return false;
     }
 
-    // Buscar en tabla alfanumérica (predefinida)
+    // Buscar en tabla predefinida
     bool buscarPredefinido(const string& llave) {
         int posicion = hashPredefinido(llave);
-        return tablaPredefinida[posicion].ocupado && tablaPredefinida[posicion].llave == llave;
+        for (const auto& l : tablaPredefinida[posicion].llaves) {
+            if (l == llave) {
+                return true;
+            }
+        }
+        return false;
     }
 
     // Mostrar todas las tablas
@@ -110,26 +149,38 @@ public:
         cout << "\nTabla Numérica:\n";
         for (int i = 0; i < TAMANO_TABLA_NUMERICA; i++) {
             if (tablaNumerica[i].ocupado) {
-                cout << "Posición: " << i << " -> Llave: " << tablaNumerica[i].llave << endl;
+                cout << "Posición: " << i << " -> Llaves: ";
+                for (const auto& l : tablaNumerica[i].llaves) {
+                    cout << l << " ";
+                }
+                cout << endl;
             }
         }
         cout << "\nTabla Alfanumérica:\n";
         for (int i = 0; i < TAMANO_TABLA_ALFANUMERICA; i++) {
             if (tablaAlfanumerica[i].ocupado) {
-                cout << "Posición: " << i << " -> Llave: " << tablaAlfanumerica[i].llave << endl;
+                cout << "Posición: " << i << " -> Llaves: ";
+                for (const auto& l : tablaAlfanumerica[i].llaves) {
+                    cout << l << " ";
+                }
+                cout << endl;
             }
         }
         cout << "\nTabla Predefinida:\n";
         for (int i = 0; i < TAMANO_TABLA_HASH_PREDEFINIDA; i++) {
             if (tablaPredefinida[i].ocupado) {
-                cout << "Posición: " << i << " -> Llave: " << tablaPredefinida[i].llave << endl;
+                cout << "Posición: " << i << " -> Llaves: ";
+                for (const auto& l : tablaPredefinida[i].llaves) {
+                    cout << l << " ";
+                }
+                cout << endl;
             }
         }
     }
 };
 
 int main() {
-       system("chcp 65001");
+    system("chcp 65001");
 
     // Configurar el entorno para mostrar caracteres especiales
     setlocale(LC_ALL, "es_ES.UTF-8");
@@ -188,10 +239,10 @@ int main() {
                 tabla.mostrarTablas();
                 break;
             case 8:
-                cout << "Saliendo...\n";
+                cout << "Saliendo del programa...\n";
                 break;
             default:
-                cout << "Opción no válida.\n";
+                cout << "Opción inválida. Intente de nuevo.\n";
         }
     } while (opcion != 8);
 
