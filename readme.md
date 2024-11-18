@@ -31,3 +31,19 @@
     - Ejecute el programa y pruebe las siguientes llaves
     - Insertar llaves 123, 456, 756
     - Buscar Llaves: Pruebe buscando llaves existentes y no existentes.
+# Algoritmo de Dispersion Alfanumerico
+1. Objetivo
+    - Desarrollar un algoritmo de dispersión propio para llaves alfanuméricas (sin utilizar librerías, bibliotecas ni funciones de dispersión predefinidas). La tabla   hash debe tener una capacidad para 1100 registros.
+2. Estrategia
+    -Para las llaves alfanuméricas, necesitamos un algoritmo de dispersión que convierta una cadena de caracteres (string) en una posición dentro del rango de la tabla hash (0 a 1099).
+    2. 1. Diseño del algoritmo de dispersion para llaves alfanumericas
+    - Vamos a utilizar un enfoque común llamado Hashing Polinómico:
+    - Iteramos sobre cada carácter de la cadena.
+    - Asignamos un peso a cada carácter usando su valor ASCII.
+    - Utilizamos un factor multiplicativo para aumentar la dispersión (por ejemplo, 31).
+    - Aplicamos el módulo 1100 para asegurarnos de que el valor esté dentro del rango deseado (0 a 1099).
+3. Explicacion del Algoritmo
+    - factor = 31: Es un número primo que ayuda a distribuir mejor las cadenas (aunque puede ajustarse).
+    - Para cada carácter en la cadena:
+    - Multiplicamos el hash acumulado por factor y sumamos el valor ASCII del carácter.
+    - Aplicamos el módulo 1100 para mantener el valor en el rango [0, 1099].
