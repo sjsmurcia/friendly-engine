@@ -47,3 +47,18 @@
     - Para cada carácter en la cadena:
     - Multiplicamos el hash acumulado por factor y sumamos el valor ASCII del carácter.
     - Aplicamos el módulo 1100 para mantener el valor en el rango [0, 1099].
+4. Implementar la tabla hash para manejar llaves alfanumericas
+    -  Modificar el codigo del iniciso a. para incluir funcionalidad de insertar y buscar llaves alfanumericas    
+5. Explicación del Código
+    - Clase TablaHash:
+
+    - Usa un vector de estructuras Entrada para almacenar llaves alfanuméricas.
+    - Método insertar():
+    - Utiliza la función hashAlfanumerico() para obtener la posición de la llave.
+    - Verifica si la posición ya está ocupada.
+    - Método buscar():
+    - Comprueba si la llave existe en la posición calculada.
+    - Método mostrarTabla():
+    - Imprime todas las llaves almacenadas.
+     -Menú Interactivo:
+        Permite al usuario insertar, buscar y mostrar las llaves alfanuméricas en la tabla.
